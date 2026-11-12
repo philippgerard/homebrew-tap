@@ -14,6 +14,9 @@ cask=philippgerard/tap/filen-menubar
 app='/Applications/Filen Menubar.app'
 [[ ! -e "$app" ]] || { echo 'Refusing to overwrite an existing app.' >&2; exit 1; }
 brew tap philippgerard/tap "$root"
+# Keep Homebrew's trust identity canonical even though the candidate was cloned
+# locally rather than fetched from the published tap.
+git -C "$(brew --repository philippgerard/tap)" remote set-url origin https://github.com/philippgerard/homebrew-tap
 # The release updater may have changed the cask without committing it yet.
 cp "$root/Casks/filen-menubar.rb" "$(brew --repository philippgerard/tap)/Casks/filen-menubar.rb"
 brew trust --cask "$cask"
