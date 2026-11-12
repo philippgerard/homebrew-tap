@@ -1,0 +1,46 @@
+name: Update cask
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: update-cask
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test release verification
+        run: python3 -m unittest discover -s tests -v
+      - name: Verify release and update cask
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/update-cask.py
+      - name: Audit, install, verify and uninstall candidate
+        if: steps.release.outputs.changed == 'true'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: bash scripts/check-cask.sh
+      - name: Publish validated cask
+        if: steps.release.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- . ':!Casks/filen-menubar.rb'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Casks/filen-menubar.rb
+          git commit -m "Update filen-menubar to ${VERSION}"
+          git push origin HEAD:main
