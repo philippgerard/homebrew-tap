@@ -39,8 +39,9 @@ window state; it deliberately preserves configuration and credentials.
 
 ## Release updates
 
-The `Update cask` workflow checks every six hours, or on manual dispatch. It
-requires a published stable release, a successful upstream release workflow
+The `Update cask` workflow checks every six hours while GitHub keeps its
+schedule enabled (see below), or on manual dispatch. It requires a published
+stable release, a successful upstream release workflow
 from `main` at the exact tagged commit, matching GitHub asset digests and
 `SHA256SUMS`, and a checksum-verified DMG. Before publishing the bump, macOS CI
 audits the cask, installs it, verifies the expected signing team and bundle ID,
@@ -60,5 +61,12 @@ brew style Casks/filen-menubar.rb
 `--check` verifies the latest upstream release and reports whether the cask
 needs an update, without changing it. The updater fails closed on missing
 release evidence, a changed asset for an already packaged version, or a
-downgrade. Releases dispatched from a later commit than their tag need a new
-successful release run at the exact tagged commit before automatic publication.
+downgrade. The upstream release workflow runs only from `main`, so dispatch it
+while the tagged commit is still the tip of `main`. If `main` has already
+advanced, that release cannot be published automatically; publish a new
+reviewed release from the current `main` tip instead.
+
+GitHub disables scheduled workflows in public repositories after 60 days
+without repository activity. If that happens, re-enable `Update cask` on the
+Actions page (or `gh workflow enable update.yml`), then run it once with
+`gh workflow run update.yml`.

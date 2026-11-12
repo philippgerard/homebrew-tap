@@ -30,7 +30,7 @@ def fetch(url, *, api=False):
         if not url.startswith(API + "/"):
             raise ValueError("Unexpected API URL")
         headers.update({"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
-        token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+        token = os.environ.get("GH_TOKEN")
         if token:
             headers["Authorization"] = f"Bearer {token}"
     with urlopen(Request(url, headers=headers), timeout=120) as response:
